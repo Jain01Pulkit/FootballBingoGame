@@ -43,9 +43,18 @@ export const gameService = {
 		}
 	},
 	submitScore: (score) => api.post("/game/score", { score }),
-	resetGame: async () => {
+	getPlayerCount: async (cardId) => {
 		try {
-			const response = await api.post("/game/reset");
+			const response = await api.get(`/game/player-count/${cardId}`);
+			return response.data.count;
+		} catch (error) {
+			console.error("Error getting player count:", error);
+			throw error;
+		}
+	},
+	resetGame: async (cardId) => {
+		try {
+			const response = await api.post("/game/reset", { cardId });
 			return response.data;
 		} catch (error) {
 			console.error("Error resetting game:", error);

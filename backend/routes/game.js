@@ -71,16 +71,13 @@ function shuffleArray(array) {
 // Reset game and create new shuffled order
 router.post("/reset", async (req, res) => {
 	try {
-		// Reset the game state in the database
-		await Player.updateMany(
-			{},
-			{
-				isUsed: false, // Mark all players as unused
-				lastUsed: null, // Clear the last used timestamp
-			}
-		);
+		const { cardId } = req.body;
+		const query = cardId ? { cardId } : {};
 
-		// Reset any other game-related state you might have
+		await Player.updateMany(query, {
+			isUsed: false,
+			lastUsed: null,
+		});
 
 		res.json({ message: "Game reset successfully" });
 	} catch (error) {
@@ -93,38 +90,66 @@ router.post("/reset", async (req, res) => {
 router.get("/player/:cardId", async (req, res) => {
 	try {
 		const { cardId } = req.params;
-		const card = await Card.findOne({ id: cardId });
+		console.log(`Getting player for card: ${cardId}`);
 
+		const card = await Card.findOne({ id: cardId });
 		if (!card) {
+			console.log(`Card not found: ${cardId}`);
 			return res.status(404).json({ error: "Card not found" });
 		}
 
-		// First, check total players and reset if needed
-		const totalUnusedPlayers = await Player.countDocuments({ isUsed: false });
+		// Log total and unused players for this card
+		const totalPlayers = await Player.countDocuments({ cardId });
+		const unusedPlayers = await Player.countDocuments({
+			cardId,
+			isUsed: false,
+		});
+		console.log(`Total players for ${cardId}: ${totalPlayers}`);
+		console.log(`Unused players for ${cardId}: ${unusedPlayers}`);
 
-		// Only reset if ALL players have been used
-		if (totalUnusedPlayers === 0) {
+		// Get a random unused player for this specific card
+		const randomPlayer = await Player.aggregate([
+			{
+				$match: {
+					isUsed: false,
+					cardId: cardId,
+				},
+			},
+			{ $sample: { size: 1 } },
+		]).exec();
+
+		console.log("Random player query result:", randomPlayer);
+		if (!randomPlayer || randomPlayer.length === 0) {
+			console.log(`No unused players found for ${cardId}, resetting players`);
+			// Reset all players for this card
 			await Player.updateMany(
-				{},
+				{ cardId },
 				{
 					isUsed: false,
 					lastUsed: null,
 				}
 			);
-			console.log("All players used - resetting game");
-		}
 
-		// Get fresh count after potential reset
-		const totalPlayers = await Player.countDocuments({ isUsed: false });
+			// Try getting a player again
+			const resetRandomPlayer = await Player.aggregate([
+				{
+					$match: {
+						cardId: cardId,
+					},
+				},
+				{ $sample: { size: 1 } },
+			]).exec();
 
-		// Get a random unused player using aggregation pipeline
-		const randomPlayer = await Player.aggregate([
-			{ $match: { isUsed: false } },
-			{ $sample: { size: 1 } },
-		]).exec();
+			console.log("Reset random player query result:", resetRandomPlayer);
 
-		if (!randomPlayer || randomPlayer.length === 0) {
-			return res.status(404).json({ message: "No more players available" });
+			if (!resetRandomPlayer || resetRandomPlayer.length === 0) {
+				console.log(`Still no players found for ${cardId} after reset`);
+				return res
+					.status(404)
+					.json({ message: "No players available for this card" });
+			}
+
+			randomPlayer = resetRandomPlayer;
 		}
 
 		const player = randomPlayer[0];
@@ -135,13 +160,21 @@ router.get("/player/:cardId", async (req, res) => {
 			lastUsed: new Date(),
 		});
 
+		// Get total unused players for this card
+		const totalUnusedPlayers = await Player.countDocuments({
+			cardId,
+			isUsed: false,
+		});
+
+		console.log(`Players left for ${cardId}: ${totalUnusedPlayers}`);
+
 		res.json({
 			player: {
 				id: player._id,
 				name: player.name,
 			},
 			choices: card.choices,
-			playersLeft: totalPlayers - 1,
+			playersLeft: totalUnusedPlayers,
 		});
 	} catch (error) {
 		console.error("Error getting player:", error);
@@ -189,6 +222,18 @@ router.get("/cards", async (req, res) => {
 	} catch (error) {
 		console.error("Error fetching cards:", error);
 		res.status(500).json({ error: "Failed to fetch cards" });
+	}
+});
+
+// Add this new route to get player count for a specific card
+router.get("/player-count/:cardId", async (req, res) => {
+	try {
+		const { cardId } = req.params;
+		const count = await Player.countDocuments({ cardId });
+		res.json({ count });
+	} catch (error) {
+		console.error("Error getting player count:", error);
+		res.status(500).json({ error: "Failed to get player count" });
 	}
 });
 

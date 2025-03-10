@@ -75,6 +75,53 @@ const cards = [
 			{ id: "SVN", label: "SVN", icon: "🇸🇮" },
 		],
 	},
+	{
+		id: "carrick",
+		name: "Michael Carrick Card",
+		description: "Based on Michael Carrick's career achievements",
+		choices: [
+			{ id: "BAY", label: "BAY", icon: "🔴⚪" },
+			{
+				id: "CL_GOLDEN_BOOT_93",
+				label: "CHAMPIONS LGE GOLDEN\nBOOT WINNER SINCE\n1992/93",
+				icon: "👟",
+			},
+			{
+				id: "EUROPA_WINNER_2010",
+				label: "EUROPA LGE WINNER\nSINCE 2009/10",
+				icon: "🏆",
+			},
+			{ id: "MEX", label: "MEX", icon: "🇲🇽" },
+			{ id: "TOT", label: "TOT", icon: "🐓" },
+			{ id: "JUV", label: "JUV", icon: "⚫⚪" },
+			{ id: "POR", label: "POR", icon: "🇵🇹" },
+			{ id: "NOR", label: "NOR", icon: "🇳🇴" },
+			{
+				id: "CL_WINNER_93",
+				label: "CHAMPIONS LGE\nWINNER SINCE 1992/93",
+				icon: "🏆",
+			},
+			{ id: "AJA", label: "AJA", icon: "⭐" },
+			{ id: "NLD_BAY", label: "NLD + BAY", icon: "🔴⚪" },
+			{
+				id: "PLAYED_WITH_R9",
+				label: "PLAYED WITH\nRONALDO NAZARIO",
+				icon: "🏃",
+			},
+			{
+				id: "MANAGED_BY_EMERY",
+				label: "MANAGED BY EMERY",
+				icon: "👔",
+			},
+			{ id: "CIV", label: "CIV", icon: "🇨🇮" },
+			{
+				id: "DUTCH_DIV_57",
+				label: "PLAYED IN DUTCH TOP\nDIV SINCE 1956/57",
+				icon: "🇳🇱",
+			},
+			{ id: "DOR", label: "DOR", icon: "⚫🟡" },
+		],
+	},
 ];
 
 const seedCards = async () => {

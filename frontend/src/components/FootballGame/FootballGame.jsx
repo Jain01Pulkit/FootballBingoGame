@@ -56,10 +56,14 @@ const FootballGame = () => {
       await gameService.resetGame();
       setGlobalSelectedChoices(new Set());
       setChoiceResults({});
+
+      // Get initial count of players for this card
+      const initialCount = await gameService.getPlayerCount(cardId);
+      
       setGameState({
         currentPlayer: null,
         choices: [],
-        playersLeft: 42,
+        playersLeft: initialCount, // Use the actual count for this card
         loading: true,
         error: null,
         gameOver: false
@@ -218,13 +222,15 @@ const FootballGame = () => {
 
   const handleRestart = async (cardId) => {
     try {
-      await gameService.resetGame();
+      await gameService.resetGame(cardId);
+      const initialCount = await gameService.getPlayerCount(cardId);
+      
       setGlobalSelectedChoices(new Set());
       setChoiceResults({});
       setGameState({
         currentPlayer: null,
         choices: [],
-        playersLeft: 42,
+        playersLeft: initialCount, // Use actual count for this card
         loading: true,
         error: null,
         gameOver: false
